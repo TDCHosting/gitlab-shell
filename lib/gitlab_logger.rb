@@ -1,6 +1,8 @@
-require 'logger'
-
 require_relative 'gitlab_config'
+require 'syslog/logger';
+require 'logger';
+
+config = GitlabConfig.new
 
 def convert_log_level log_level
   Logger.const_get(log_level.upcase)
@@ -10,7 +12,11 @@ rescue NameError
   Logger::INFO
 end
 
-config = GitlabConfig.new
+if( config.logfile.match(/SYSLOG/) )
+then
+  $logger = Syslog::Logger.new("gitlab-shell");
+else
+  $logger = Logger.new(config.log_file)
+end
 
-$logger = Logger.new(config.log_file)
 $logger.level = convert_log_level(config.log_level)
